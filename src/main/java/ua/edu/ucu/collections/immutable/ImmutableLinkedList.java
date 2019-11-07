@@ -1,13 +1,12 @@
 package ua.edu.ucu.collections.immutable;
 
-//import com.sun.java.util.jar.pack.ConstantPool;
 
 import java.util.Arrays;
 
 public class ImmutableLinkedList implements ImmutableList{
-    private Node start;
-    private int length;
-    private Node end;
+    Node start;
+    int length;
+    Node end;
 
 
     public ImmutableLinkedList() {
@@ -31,6 +30,27 @@ public class ImmutableLinkedList implements ImmutableList{
             length = 0;
             end = null;
         }
+    }
+
+    // helping function
+    ImmutableLinkedList copy() {
+        // returns a copy of self, using properties of linked list
+        if (length == 0) return new ImmutableLinkedList();
+        // initialise the return ILL
+        ImmutableLinkedList result = new ImmutableLinkedList();
+        // initialize the start and end nodes
+        result.end = new Node(start.value, null);
+        result.start = result.end;
+        result.length++;
+        Node current = start.next;
+        // copy all the other nodes
+        while (current != null) {
+            result.end.next = new Node(current.value, null);
+            result.end = result.end.next;
+            result.length++;
+            current = current.next;
+        }
+        return result;
     }
 
 
@@ -65,14 +85,33 @@ public class ImmutableLinkedList implements ImmutableList{
     public ImmutableLinkedList addAll(int index, Object[] c) {
         if (index < 0 || index > length) throw new IndexOutOfBoundsException();
 
-        Object[] newArr = new Object[length + c.length];
-        Object[] oldArr  = this.toArray();
+        Node minusFirst = new Node(null, null);  // this is element №-1 of the returned list. Just for convenience
+        Node curFinish = minusFirst;
+        Node current = start;
+        int i = 0;
+        while (i != index) {
+            curFinish.next = new Node(current.value, null);
+            curFinish = curFinish.next;
+            current = current.next;
+            i++;
+        }
+        // at this point, current contains the node at position index, so it's time to insert elements from the array
+        for (Object o : c) {
+            curFinish.next = new Node(o, null);
+            curFinish = curFinish.next;
+        }
+        // and here we continue inserting nodes from this
+        while (current != null) {
+            curFinish.next = new Node(current.value, null);
+            curFinish = curFinish.next;
+            current = current.next;
+        }
 
-        System.arraycopy(oldArr, 0, newArr, 0, index);
-        System.arraycopy(c, 0, newArr, index, c.length);
-        System.arraycopy(oldArr, index, newArr, index + c.length, length - index);
-
-        return new ImmutableLinkedList(newArr);
+        ImmutableLinkedList result = new ImmutableLinkedList();
+        result.start = minusFirst.next;
+        result.end = curFinish;
+        result.length = length + c.length;
+        return result;
     }
 
     @Override
@@ -88,24 +127,34 @@ public class ImmutableLinkedList implements ImmutableList{
     }
 
     @Override
-    public ImmutableList remove(int index) {
+    public ImmutableLinkedList remove(int index) {
         if (index < 0 || index >= length) throw new IndexOutOfBoundsException();
 
-        Object[] new_arr = new Object[length - 1];
+        // initialize the returned linked list, but not yet as ILL, just sequence of nodes
+        Node new_start = new Node(null, null);
+        Node new_end = new_start;
+        // now we can easily add new nodes to it. The node, created above, will be deleted later.
 
-        Node current = start;
         int i = 0;
+        Node current = start;
         while (current != null) {
-            if (i != index) new_arr[i] = current.value;
-            current = current.next;
+            if (i != index) {
+                new_end.next = new Node(current.value, null);
+                new_end = new_end.next;
+            }
             i++;
+            current = current.next;
         }
 
-        return new ImmutableLinkedList(new_arr);
+        ImmutableLinkedList result = new ImmutableLinkedList();
+        result.start = new_start.next;  // because the first node was created just for convenience
+        result.end = new_end;
+        result.length = length - 1;
+        return result;
     }
 
     @Override
-    public ImmutableList set(int index, Object e) throws IndexOutOfBoundsException {
+    public ImmutableLinkedList set(int index, Object e) throws IndexOutOfBoundsException {
         if (index < 0 || index >= length) throw new IndexOutOfBoundsException();
 
         Object[] new_arr = Arrays.copyOf(this.toArray(), length);
@@ -168,11 +217,11 @@ public class ImmutableLinkedList implements ImmutableList{
         return result;
     }
 
-    private static class Node {
+    static class Node {
         Object value;
         Node next;
 
-        public Node(Object value, Node next) {
+        Node(Object value, Node next) {
             this.value = value;
             this.next = next;
         }
