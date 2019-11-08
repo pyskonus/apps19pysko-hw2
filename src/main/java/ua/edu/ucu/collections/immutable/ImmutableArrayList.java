@@ -3,7 +3,7 @@ package ua.edu.ucu.collections.immutable;
 import java.util.Arrays;
 
 public class ImmutableArrayList implements ImmutableList {
-    Object[] els = new Object[0];   // package-private access needed
+    Object[] els;   // package-private access needed
 
     public ImmutableArrayList() {
         this.els = new Object[0];
@@ -21,21 +21,24 @@ public class ImmutableArrayList implements ImmutableList {
     }
 
     @Override
-    public ImmutableArrayList add(int index, Object e) throws IndexOutOfBoundsException {
+    public ImmutableArrayList add(int index, Object e)
+            throws IndexOutOfBoundsException {
         // throw an exception if the index is invalid
-        if (index < 0 || index > els.length) throw new IndexOutOfBoundsException();
+        if (index < 0 || index > els.length) {
+            throw new IndexOutOfBoundsException();
+        }
 
         // create a new array with one more cell
-        Object[] new_array = new Object[els.length + 1];
+        Object[] newArray = new Object[els.length + 1];
 
         // copy the first part of the source array (0-index)
-        System.arraycopy(els, 0, new_array, 0, index);
+        System.arraycopy(els, 0, newArray, 0, index);
         // paste the given Object
-        new_array[index] = e;
+        newArray[index] = e;
         // copy the rest
-        System.arraycopy(els, index, new_array, index + 1, new_array.length - index - 1);
+        System.arraycopy(els, index, newArray, index + 1, newArray.length - index - 1);
 
-        return new ImmutableArrayList(new_array);
+        return new ImmutableArrayList(newArray);
     }
 
     @Override
