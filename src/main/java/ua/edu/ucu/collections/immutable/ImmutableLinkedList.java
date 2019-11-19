@@ -169,7 +169,7 @@ public class ImmutableLinkedList implements ImmutableList{
         Node current = start;
         int i = 0;
         while (current != null) {
-            if (current.value == e) return i;
+            if (e.equals(current.value)) return i;
             current = current.next;
             i ++;
         }
